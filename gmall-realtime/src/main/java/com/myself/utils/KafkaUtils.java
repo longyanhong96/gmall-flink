@@ -21,12 +21,12 @@ import java.util.Properties;
  */
 public class KafkaUtils {
 
-//    public static FlinkKafkaProducer getProducer(String topic, Properties props) {
-//        return new FlinkKafkaProducer(topic
-//                , new KafkaStringSerialization(topic)
-//                , props
-//                , FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
-//    }
+    public static <T> FlinkKafkaProducer<T> getProducer(Properties props,String topic) {
+        return new FlinkKafkaProducer<T>(topic
+                , new KafkaStringSerialization(topic)
+                , props
+                , FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
+    }
 
     public static <T> FlinkKafkaProducer<T> getKafkaSinkBySchema(KafkaSerializationSchema<T> kafkaSerializationSchema, Properties props, String topic) {
         return new FlinkKafkaProducer<T>(topic,
@@ -48,9 +48,7 @@ class KafkaStringSerialization<T> implements KafkaSerializationSchema<KafkaProdu
     public ProducerRecord<byte[], byte[]> serialize(KafkaProducerRecord<T> kafkaProducerRecord, @Nullable Long aLong) {
         return new ProducerRecord<byte[], byte[]>(
                 topic,
-//                Objects.requireNonNull(JsonUtil.format(kafkaProducerRecord.getValue())).getBytes(StandardCharsets.UTF_8)
-//                JsonUtil.format(kafkaProducerRecord.getValue()).getBytes(StandardCharsets.UTF_8)
-                null
+                Objects.requireNonNull(JsonUtil.format(kafkaProducerRecord.getValue())).getBytes(StandardCharsets.UTF_8)
         );
     }
 }

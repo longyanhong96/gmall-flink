@@ -1,6 +1,7 @@
 package com.myself.process.ods;
 
 import com.alibaba.fastjson.JSONObject;
+
 import com.ververica.cdc.debezium.DebeziumDeserializationSchema;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;

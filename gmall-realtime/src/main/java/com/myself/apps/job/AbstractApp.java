@@ -37,7 +37,7 @@ public abstract class AbstractApp {
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 设置flink env环境信息
-        initEnv(env);
+//        initEnv(env);
         // 运行任务
         process(env);
         // 启动
@@ -48,7 +48,6 @@ public abstract class AbstractApp {
 
     private void initEnv(StreamExecutionEnvironment env) {
         StateBackend stateBackend;
-        String backendType = dict.getByPath(FlinkConfigContants.FLINK_STATE_BACKEND_TYPE, String.class);
         switch (dict.getByPath(FlinkConfigContants.FLINK_STATE_BACKEND_TYPE, String.class)) {
             case "rocksdb":
                 Boolean incremental = dict.getByPath(FlinkConfigContants.FLINK_STATE_BACKEND_INCREMENTAL, Boolean.class);

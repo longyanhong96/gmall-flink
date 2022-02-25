@@ -16,24 +16,24 @@ public class KafkaProducerRecord<T> implements Serializable {
     private String key;
     private T value;
 
-//    public static <E> KafkaProducerRecord<E> of(E value) {
-//        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
-//        record.setValue(value);
-//        return record;
-//    }
-//
-//    public static <E> KafkaProducerRecord<E> of(String key, E value) {
-//        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
-//        record.setKey(key);
-//        record.setValue(value);
-//        return record;
-//    }
-//
-//    public static <E> KafkaProducerRecord<E> of(Integer partition, String key, E value) {
-//        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
-//        record.setPartition(partition);
-//        record.setKey(key);
-//        record.setValue(value);
-//        return record;
-//    }
+    public static <E> KafkaProducerRecord<E> of(E value) {
+        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
+        record.setValue(value);
+        return record;
+    }
+
+    public static <E> KafkaProducerRecord<E> of(String key, E value) {
+        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
+        record.setKey(key);
+        record.setValue(value);
+        return record;
+    }
+
+    public static <E> KafkaProducerRecord<E> of(Integer partition, String key, E value) {
+        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
+        record.setPartition(partition);
+        record.setKey(key);
+        record.setValue(value);
+        return record;
+    }
 }

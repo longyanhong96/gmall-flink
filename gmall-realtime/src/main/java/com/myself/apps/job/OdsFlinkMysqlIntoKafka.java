@@ -10,10 +10,8 @@ import com.myself.constants.MysqlConstants;
 import com.myself.process.ods.MysqlJsonStringDeserializationSchema;
 import com.myself.utils.KafkaUtils;
 import com.ververica.cdc.connectors.mysql.MySqlSource;
-import com.ververica.cdc.connectors.mysql.table.StartupMode;
 import com.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.ververica.cdc.debezium.DebeziumSourceFunction;
-import com.ververica.cdc.debezium.StringDebeziumDeserializationSchema;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
@@ -52,24 +50,16 @@ public class OdsFlinkMysqlIntoKafka extends AbstractApp {
                 .startupOptions(startupOption)
                 .build();
 
+
         env.addSource(mysqlSourceFunction)
-                .addSink(KafkaUtils.getKafkaSink(kafkaTopic, kafkaConsumerProps));
-//                .addSink(KafkaUtils.getKafkaSinkBySchema(new KafkaSerializationSchema<String>() {
-//
-//                    private String topic = "ods_base_db";
-//
-//                    @Override
-//                    public ProducerRecord<byte[], byte[]> serialize(String s, @Nullable Long aLong) {
-//                        return new ProducerRecord<byte[], byte[]>(topic, s.getBytes());
-//                    }
-//                }, kafkaConsumerProps, kafkaTopic));
-//                .map(new MapFunction<String, KafkaProducerRecord<String>>() {
-//                    @Override
-//                    public KafkaProducerRecord<String> map(String s) throws Exception {
-//                        return KafkaProducerRecord.of(s);
-//                    }
-//                })
-//                .addSink(KafkaUtils.getProducer(kafkaTopic, kafkaConsumerProps));
+                .map(new MapFunction<String, KafkaProducerRecord<String>>() {
+                    @Override
+                    public KafkaProducerRecord<String> map(String value) throws Exception {
+                        KafkaProducerRecord<String> record = KafkaProducerRecord.of(value);
+                        return record;
+                    }
+                })
+                .addSink(KafkaUtils.getProducer(kafkaConsumerProps, kafkaTopic));
     }
 
     @Override
