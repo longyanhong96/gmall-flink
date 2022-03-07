@@ -19,7 +19,8 @@ flink:
             number: 3
     checkpoint-storage: EXACTLY_ONCE
 kafka:
-  topics: ods_base_db
+  topics:
+    producer: ods_base_db
   producerPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/producer.properties
 mysql:
   configPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/mysql.properties

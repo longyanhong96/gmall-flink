@@ -1,8 +1,9 @@
-package com.myself.apps.job;
+package com.myself.apps.job.ods;
 
 import cn.hutool.core.lang.Dict;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
+import com.myself.apps.job.AbstractApp;
 import com.myself.bean.kafka.KafkaProducerRecord;
 import com.myself.constants.BaseConstants;
 import com.myself.constants.KafkaConstants;
@@ -29,7 +30,7 @@ import java.util.List;
  */
 public class OdsFlinkMysqlIntoKafka extends AbstractApp {
 
-    private Props kafkaConsumerProps;
+    private Props kafkaProducerProps;
     private String kafkaTopic;
 
     private Props mysqlProps;
@@ -52,14 +53,7 @@ public class OdsFlinkMysqlIntoKafka extends AbstractApp {
 
 
         env.addSource(mysqlSourceFunction)
-                .map(new MapFunction<String, KafkaProducerRecord<String>>() {
-                    @Override
-                    public KafkaProducerRecord<String> map(String value) throws Exception {
-                        KafkaProducerRecord<String> record = KafkaProducerRecord.of(value);
-                        return record;
-                    }
-                })
-                .addSink(KafkaUtils.getProducer(kafkaConsumerProps, kafkaTopic));
+                .addSink(KafkaUtils.getKafkaSink(kafkaTopic, kafkaProducerProps));
     }
 
     @Override
@@ -67,8 +61,8 @@ public class OdsFlinkMysqlIntoKafka extends AbstractApp {
         /**
          * kafka配置
          */
-        kafkaConsumerProps = PropsUtil.get(dict.getByPath(KafkaConstants.KAFKA_PRODUCER_CONFIG_PATH, String.class));
-        kafkaTopic = dict.getByPath(KafkaConstants.KAFKA_TOPICS, String.class);
+        kafkaProducerProps = PropsUtil.get(dict.getByPath(KafkaConstants.KAFKA_PRODUCER_CONFIG_PATH, String.class));
+        kafkaTopic = dict.getByPath(KafkaConstants.KAFKA_PRODUCER_TOPICS, String.class);
 
         /**
          * mysql配置

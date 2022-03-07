@@ -23,6 +23,13 @@
     <dependencies>
 
         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>5.7.18</version>
@@ -117,6 +124,32 @@
             <artifactId>guava</artifactId>
             <version>18.0</version>
         </dependency>
+
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.phoenix/phoenix-core &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.phoenix</groupId>-->
+<!--            <artifactId>phoenix-core</artifactId>-->
+<!--            <version>4.16.1</version>-->
+<!--        </dependency>-->
+
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.phoenix/phoenix-queryserver-client &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.phoenix</groupId>-->
+<!--            <artifactId>phoenix-queryserver-client</artifactId>-->
+<!--            <version>4.14.1-HBase-1.2</version>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.apache.phoenix/phoenix-client &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.phoenix</groupId>-->
+<!--            <artifactId>phoenix-client</artifactId>-->
+<!--            <version>4.14.1-HBase-1.2</version>-->
+<!--&lt;!&ndash;            <scope>test</scope>&ndash;&gt;-->
+<!--        </dependency>-->
+
+
 
     </dependencies>
 

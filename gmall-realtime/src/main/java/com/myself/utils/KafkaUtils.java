@@ -4,12 +4,14 @@ import com.myself.bean.kafka.KafkaProducerRecord;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -23,7 +25,7 @@ public class KafkaUtils {
 
     public static <T> FlinkKafkaProducer<T> getProducer(Properties props,String topic) {
         return new FlinkKafkaProducer<T>(topic
-                , new KafkaStringSerialization(topic)
+                , new KafkaStringSerialization()
                 , props
                 , FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
     }
@@ -35,6 +37,11 @@ public class KafkaUtils {
 
     public static FlinkKafkaProducer<String> getKafkaSink(String topic, Properties props) {
         return new FlinkKafkaProducer<String>(topic, new SimpleStringSchema(), props);
+    }
+
+
+    public static FlinkKafkaConsumer<String> getConsumer(Properties properties, List<String> topics){
+        return new FlinkKafkaConsumer<>(topics, new SimpleStringSchema(), properties);
     }
 }
 

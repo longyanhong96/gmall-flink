@@ -20,11 +20,12 @@ flink:
     checkpoint-storage: EXACTLY_ONCE
 kafka:
   topics:
-    producer: ods_base_db
-  producerPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/producer.properties
-mysql:
-  configPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/mysql.properties
-  database: gmall
-  startupOption: EARLIEST_OFFSET
+    producer:
+      - dwd_start_log
+      - dwd_display_log
+      - dwd_page_log
+    consumer: ods_base_log
+  consumerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
+  producerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
 jobName: ods-mysql-into-kafka
 

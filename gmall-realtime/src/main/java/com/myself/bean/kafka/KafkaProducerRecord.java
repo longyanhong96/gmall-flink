@@ -12,6 +12,7 @@ import java.io.Serializable;
  */
 @Data
 public class KafkaProducerRecord<T> implements Serializable {
+    private String topic;
     private Integer partition;
     private String key;
     private T value;
@@ -31,6 +32,15 @@ public class KafkaProducerRecord<T> implements Serializable {
 
     public static <E> KafkaProducerRecord<E> of(Integer partition, String key, E value) {
         KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
+        record.setPartition(partition);
+        record.setKey(key);
+        record.setValue(value);
+        return record;
+    }
+
+    public static <E> KafkaProducerRecord<E> of(String topic, Integer partition, String key, E value) {
+        KafkaProducerRecord<E> record = new KafkaProducerRecord<>();
+        record.setTopic(topic);
         record.setPartition(partition);
         record.setKey(key);
         record.setValue(value);
