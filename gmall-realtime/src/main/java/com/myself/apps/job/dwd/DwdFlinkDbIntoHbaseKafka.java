@@ -9,20 +9,17 @@ import com.myself.constants.KafkaConstants;
 import com.myself.constants.MysqlConstants;
 import com.myself.process.dwd.MysqlConfigBroadcastProcessFunction;
 import com.myself.process.ods.MysqlJsonStringDeserializationSchema;
+import com.myself.sink.dwd.PhoenixSinkFunction;
 import com.myself.utils.KafkaUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
 import com.ververica.cdc.connectors.mysql.MySqlSource;
 import com.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.ververica.cdc.debezium.DebeziumSourceFunction;
-import org.apache.flink.api.common.state.MapStateDescriptor;
-import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
-import org.apache.flink.util.Collector;
 
 import java.util.List;
 
@@ -70,6 +67,8 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
 
 
 //        sinkKafkaStream.
+
+        sinkHbaseStream.addSink(new PhoenixSinkFunction());
     }
 
     @Override

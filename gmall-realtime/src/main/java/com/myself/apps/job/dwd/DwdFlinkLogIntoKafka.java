@@ -62,8 +62,8 @@ public class DwdFlinkLogIntoKafka extends AbstractApp {
 
         List<String> kafkaProducerTopic = dict.getByPath(KafkaConstants.KAFKA_PRODUCER_TOPICS, List.class);
         startLogTopic = kafkaProducerTopic.get(0);
-        displayLogTopic = kafkaProducerTopic.get(0);
-        pageLogTopic = kafkaProducerTopic.get(0);
+        displayLogTopic = kafkaProducerTopic.get(1);
+        pageLogTopic = kafkaProducerTopic.get(2);
 
     }
 }

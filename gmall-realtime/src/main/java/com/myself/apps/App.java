@@ -36,10 +36,11 @@ public class App {
         String modelName = params.get(BaseConstants.MODEL_NAME);
         log.info("======= parse param modelName:{}", modelName);
 
-        if (!MODEL_NAME_SET.contains(modelName)) {
+        String className = PACKAGE + "." + modelName;
+        if (!MODEL_NAME_SET.contains(className)) {
             throw new IllegalArgumentException("项目不包含该 model：" + modelName);
         }
-        String className = PACKAGE + "." + modelName;
+
         // 反射获取 model 类
         AbstractApp app = ReflectUtil.newInstance(className);
         app.setParams(params);
@@ -48,8 +49,8 @@ public class App {
 
     private static Set<String> getAllMoleNames() {
         Set<Class<?>> classes = ClassUtil.scanPackage(PACKAGE);
-        return classes.stream().map(Class::getSimpleName)
-                .filter(name -> !"BaseApp".equals(name))
+        return classes.stream().map(Class::getName)
+                .filter(name -> !"BaseApp".endsWith(name))
                 .collect(Collectors.toSet());
     }
 }

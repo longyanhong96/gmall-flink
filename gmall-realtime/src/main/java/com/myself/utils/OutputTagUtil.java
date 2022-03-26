@@ -10,10 +10,13 @@ import org.apache.flink.util.OutputTag;
  */
 public class OutputTagUtil {
 
-    public static OutputTag<String> DWD_START_LOG_OUTPUT = new OutputTag<>("start-log");
+    public static OutputTag<String> DWD_START_LOG_OUTPUT = new OutputTag<String>("start-log") {
+    };
 
-    public static OutputTag<String> DWD_DISPLAY_LOG_OUTPUT =  new OutputTag<String>("display");
+    public static OutputTag<String> DWD_DISPLAY_LOG_OUTPUT = new OutputTag<String>("display") {
+    };
 
 
-    public static OutputTag<String> DWD_DB_DIM_OUTPUT_HBASE = new OutputTag<>("db-dim_hbase");
+    public static OutputTag<String> DWD_DB_DIM_OUTPUT_HBASE = new OutputTag<String>("db-dim_hbase") {
+    };
 }
