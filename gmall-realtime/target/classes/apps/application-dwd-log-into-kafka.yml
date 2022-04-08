@@ -1,0 +1,32 @@
+flink:
+  default:
+    parallelism: 2
+  state:
+    backend:
+      type: rocksdb
+      incremental: false
+    checkpoints:
+      dir: file:///E/GitHub/my/gmall-flink/checkpoint
+      interval: 60
+      concurrentCheckpoints: 1
+      min:
+        pause:
+          between: 100
+      timeout: 600
+      tolerable:
+        checkpoint:
+          failure:
+            number: 3
+    checkpoint-storage: EXACTLY_ONCE
+kafka:
+  groupId: ods_log_consumer
+  topics:
+    producer:
+      - dwd_start_log
+      - dwd_display_log
+      - dwd_page_log
+    consumer: ods_base_log
+  consumerPath: /Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
+  producerPath: /Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/producer.properties
+jobName: ods-mysql-into-kafka
+

@@ -1,0 +1,30 @@
+flink:
+  default:
+    parallelism: 2
+  state:
+    backend:
+      type: rocksdb
+      incremental: false
+    checkpoints:
+      dir: file:///E/GitHub/my/gmall-flink/checkpoint
+      interval: 60
+      concurrentCheckpoints: 1
+      min:
+        pause:
+          between: 100
+      timeout: 600
+      tolerable:
+        checkpoint:
+          failure:
+            number: 3
+    checkpoint-storage: EXACTLY_ONCE
+kafka:
+  topics:
+    consumer: ods_base_log
+  consumerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
+  producerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
+phoenix:
+  configPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\phoenix.properties
+  driver: org.apache.phoenix.jdbc.PhoenixDriver
+  url: jdbc:phoenix:192.168.106.101
+test: 123
