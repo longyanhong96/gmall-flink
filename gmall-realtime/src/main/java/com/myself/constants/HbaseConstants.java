@@ -8,7 +8,7 @@ package com.myself.constants;
  */
 public class HbaseConstants {
 
-    public final static String PHOENIX_CONFIG_PATH = "mysql.configPath";
+    public final static String PHOENIX_CONFIG_PATH = "phoenix.configPath";
 
 
 }

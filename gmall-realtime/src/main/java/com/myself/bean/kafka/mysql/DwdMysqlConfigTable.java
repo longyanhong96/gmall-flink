@@ -53,7 +53,7 @@ public class DwdMysqlConfigTable {
     /**
      * 数据源写入到下游的主键
      */
-    private String sinkColumnsKeys;
+    private String sinkPk;
 
     /**
      * 建表扩展字段

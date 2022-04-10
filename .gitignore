@@ -25,3 +25,9 @@ hs_err_pid*
 .idea
 
 checkpoint
+
+
+*.iml
+
+gmall-realtime/target
+realtime-sink/target

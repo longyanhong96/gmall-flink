@@ -30,8 +30,8 @@ public class PropertiesUtilsTest extends TestCase {
     }
 
     public void testFromYamlFile() {
-        Map<String, String> map = PropertiesUtils.fromYamlFile("/Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/apps/application-dwd-db-into-hbasekafka.yml");
-        System.out.println("map = " + map);
+//        Map<String, String> map = PropertiesUtils.fromYamlFile("/Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/apps/application-dwd-db-into-hbasekafka.yml");
+//        System.out.println("map = " + map);
     }
 
     public void testTestFromYamlFile() {

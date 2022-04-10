@@ -19,6 +19,7 @@ flink:
             number: 3
     checkpoint-storage: EXACTLY_ONCE
 kafka:
+  groupId: test1
   topics:
     producer:
       - dwd_start_log

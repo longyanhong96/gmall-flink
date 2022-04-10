@@ -3,7 +3,12 @@ package com.myself.apps.job.dwd;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.myself.apps.job.AbstractApp;
+import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
+import com.myself.connector.function.impl.PhoenixSqlFunction;
+import com.myself.connector.sink.JdbcBatchOutputFormat;
+import com.myself.connector.sink.JdbcSinkFunction;
 import com.myself.constants.HbaseConstants;
 import com.myself.constants.KafkaConstants;
 import com.myself.constants.MysqlConstants;
@@ -16,12 +21,17 @@ import com.myself.utils.OutputTagUtil;
 import com.ververica.cdc.connectors.mysql.MySqlSource;
 import com.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.ververica.cdc.debezium.DebeziumSourceFunction;
+import org.apache.flink.api.common.state.BroadcastState;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
+import org.apache.flink.util.Collector;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author longyh
@@ -40,7 +50,8 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
     private String mysqlTables;
     private StartupOptions startupOption;
 
-    private  Props phoenixProps;
+    private String phoenixConfigPath;
+    private Properties phoenixProp;
 
 
     @Override
@@ -61,14 +72,45 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
 
         SingleOutputStreamOperator<String> sinkKafkaStream = env.addSource(KafkaUtils.getConsumer(kafkaConsumerProps, consumerKafkaTopic))
                 .connect(mysqlBroadcastStream)
-                .process(new MysqlConfigBroadcastProcessFunction());
+//                .process(new BroadcastProcessFunction<String, String, String>() {
+//
+//
+//                    @Override
+//                    public void open(Configuration parameters) throws Exception {
+//
+//                    }
+//
+//                    @Override
+//                    public void processElement(String s, ReadOnlyContext readOnlyContext, Collector<String> collector) throws Exception {
+////                        collector.collect(s);
+//                    }
+//
+//                    @Override
+//                    public void processBroadcastElement(String mysqlSource, Context context, Collector<String> collector) throws Exception {
+////                        collector.collect(s);
+//                        BroadcastState<String, String> broadcastState = context.getBroadcastState(MapStateDescriptorUtils.DWD_MYSQL_STATE);
+//
+//                        JSONObject mysqlSourceJson = JSONObject.parseObject(mysqlSource);
+//                        DwdMysqlConfigTable dwdMysqlConfigTable = JSONObject.parseObject(mysqlSourceJson.getString("data"), DwdMysqlConfigTable.class);
+//                        // 保存配置
+//                        String sourceTable = dwdMysqlConfigTable.getSourceTable();
+//                        broadcastState.put(sourceTable, JSONObject.toJSONString(dwdMysqlConfigTable));
+//
+//                        String s = JSONObject.toJSONString(dwdMysqlConfigTable);
+//                        collector.collect(s);
+//
+//                    }
+//                });
+                .process(new MysqlConfigBroadcastProcessFunction(phoenixProp)).setParallelism(1);
 
-        DataStream<String> sinkHbaseStream = sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE);
+        sinkKafkaStream.print();
 
-
-//        sinkKafkaStream.
-
-        sinkHbaseStream.addSink(new PhoenixSinkFunction());
+//        DataStream<String> sinkHbaseStream = sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE);
+//
+//
+//        sinkKafkaStream.print();
+//
+//        sinkHbaseStream.addSink(new JdbcSinkFunction<>(new JdbcBatchOutputFormat<>(phoenixProp, new PhoenixSqlFunction(), 5)));
     }
 
     @Override
@@ -105,7 +147,8 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
         /**
          * phoenix配置
          */
-        phoenixProps = PropsUtil.get(dict.getByPath(HbaseConstants.PHOENIX_CONFIG_PATH, String.class));
+//        phoenixConfigPath = dict.getByPath(HbaseConstants.PHOENIX_CONFIG_PATH, String.class);
+        phoenixProp = PropsUtil.get(dict.getByPath(HbaseConstants.PHOENIX_CONFIG_PATH, String.class));
 
     }
 }

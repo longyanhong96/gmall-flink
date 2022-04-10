@@ -25,6 +25,6 @@ kafka:
 mysql:
   configPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/mysql.properties
   database: gmall
-  startupOption: EARLIEST_OFFSET
+  startupOption: INITIAL
 jobName: ods-mysql-into-kafka
 
