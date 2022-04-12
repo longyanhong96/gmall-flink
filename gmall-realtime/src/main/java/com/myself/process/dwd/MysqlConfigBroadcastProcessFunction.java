@@ -1,29 +1,21 @@
 package com.myself.process.dwd;
 
-import cn.hutool.db.ds.DSFactory;
-import cn.hutool.setting.Setting;
 import com.alibaba.fastjson.JSONObject;
 import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
-import com.myself.connector.utils.JdbcUtils;
+import com.myself.connector.utils.HbaseUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author longyh
@@ -34,57 +26,28 @@ import java.util.Properties;
 @Slf4j
 public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunction<String, String, String> {
 
-
-    private String phoenixConfigPath;
-    private Properties phoenixProp;
-    private DataSource phoenixDataSource;
-    private Connection phoenixConnection;
-
-    public MysqlConfigBroadcastProcessFunction(Properties phoenixProp) {
-        this.phoenixProp = phoenixProp;
-    }
+    private Connection connection = null;
+    private HBaseAdmin hBaseAdmin = null;
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        // 连接phoenix
-//        Setting setting = new Setting(phoenixConfigPath);
-//        phoenixDataSource = DSFactory.create(setting).getDataSource();
-//        phoenixConnection = phoenixDataSource.getConnection();
 
-//        HikariConfig hikariConfig = new HikariConfig(phoenixProp);
-//        phoenixDataSource = new HikariDataSource(hikariConfig);
-//        phoenixConnection = phoenixDataSource.getConnection();
+        org.apache.hadoop.conf.Configuration conf = HBaseConfiguration.create();
+        conf.set("hbase.zookeeper.quorum", "node1");
+        conf.set("hbase.zookeeper.property.clientPort", "2181");
 
-//        phoenixConnection = JdbcUtils.getConnect(phoenixProp);
-//
-//        if (!phoenixConnection.isClosed()) {
-//            log.info("phoenix connect!!!!");
-//        }
-
-        log.info("start open");
-
-        Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
-        String url = "jdbc:phoenix:node1:2181";
-        phoenixConnection = DriverManager.getConnection(url);
-
-        log.info("phoenix connect is close : {}", phoenixConnection.isClosed());
-
-        log.info("finish open");
-
-//        String driver = "com.mysql.jdbc.Driver";
-//        Class.forName(driver);
-//        String url = "jdbc:mysql://node1:3306/gmall?serverTimezone=UTC";
-//
-//        Connection root = DriverManager.getConnection(url, "root", "123456");
-//        log.info("mysql connect is close : {}", root.isClosed());
-
-
+        connection = ConnectionFactory.createConnection(conf);
+        hBaseAdmin = (HBaseAdmin) connection.getAdmin();
     }
 
     @Override
     public void close() throws Exception {
-        if (phoenixConnection != null) {
-            phoenixConnection.close();
+        if (hBaseAdmin != null) {
+            hBaseAdmin.close();
+        }
+
+        if (connection != null) {
+            connection.close();
         }
     }
 
@@ -131,6 +94,7 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
 
             // todo:魔法值修改
             if (dwdMysqlConfigTable.getSinkType().equals("hbase")) {
+                returnJson.put("column_family", dwdMysqlConfigTable.getTableFamily());
                 readOnlyContext.output(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE, returnJson.toJSONString());
             } else {
                 collector.collect(returnJson.toJSONString());
@@ -161,16 +125,12 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
         // todo：魔法值需要修改
         String operation = mysqlSourceJson.getString("operation");
         // 如果数据是初始都过来，或者后面的创建
-//        if (operation.equals("c") || operation.equals("r")) {
-//            if (dwdMysqlConfigTable.getSinkType().equals("hbase") &&
-//                    dwdMysqlConfigTable.getSinkExtend() != null) {
-//                String createTableSql = dwdMysqlConfigTable.getSinkExtend();
-//                PreparedStatement ps = phoenixConnection.prepareStatement(createTableSql);
-//                ps.execute();
-//            }
-//        }
-
-        collector.collect(JSONObject.toJSONString(dwdMysqlConfigTable));
-
+        if (operation.equals("c") || operation.equals("r")) {
+            if (dwdMysqlConfigTable.getSinkType().equals("hbase") &&
+                    dwdMysqlConfigTable.getTableFamily() != null) {
+                String columnsFamily = dwdMysqlConfigTable.getTableFamily();
+                HbaseUtils.createTable(hBaseAdmin, dwdMysqlConfigTable.getSinkTable(), columnsFamily);
+            }
+        }
     }
 }

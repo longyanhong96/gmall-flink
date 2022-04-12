@@ -1,4 +1,4 @@
-package com.myself.connector.sink;
+package com.myself.connector.sink.jbdc;
 
 import com.myself.connector.function.SqlFromFunction;
 import com.myself.connector.utils.JdbcUtils;
@@ -6,7 +6,6 @@ import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
 
-import java.io.Flushable;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;

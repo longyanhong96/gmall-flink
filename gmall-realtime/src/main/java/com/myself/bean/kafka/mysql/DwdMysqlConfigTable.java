@@ -56,9 +56,7 @@ public class DwdMysqlConfigTable {
     private String sinkPk;
 
     /**
-     * 建表扩展字段
-     *
-     * 主要是写入到hbase的，动态建表
+     * hbase,列族名称，现在只有一个
      */
-    private String sinkExtend;
+    private String tableFamily;
 }

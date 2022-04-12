@@ -1,4 +1,4 @@
-package com.myself.connector.sink;
+package com.myself.connector.sink.jbdc;
 
 /**
  * @author longyh

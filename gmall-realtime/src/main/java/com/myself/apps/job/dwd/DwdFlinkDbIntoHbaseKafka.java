@@ -6,29 +6,27 @@ import cn.hutool.setting.dialect.PropsUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.myself.apps.job.AbstractApp;
 import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
-import com.myself.connector.function.impl.PhoenixSqlFunction;
-import com.myself.connector.sink.JdbcBatchOutputFormat;
-import com.myself.connector.sink.JdbcSinkFunction;
 import com.myself.constants.HbaseConstants;
 import com.myself.constants.KafkaConstants;
 import com.myself.constants.MysqlConstants;
-import com.myself.process.dwd.MysqlConfigBroadcastProcessFunction;
 import com.myself.process.ods.MysqlJsonStringDeserializationSchema;
-import com.myself.sink.dwd.PhoenixSinkFunction;
 import com.myself.utils.KafkaUtils;
 import com.myself.utils.MapStateDescriptorUtils;
-import com.myself.utils.OutputTagUtil;
 import com.ververica.cdc.connectors.mysql.MySqlSource;
 import com.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.ververica.cdc.debezium.DebeziumSourceFunction;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
-import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import java.util.List;
 import java.util.Properties;
@@ -64,7 +62,7 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
                 .password(mysqlProps.getProperty(MysqlConstants.MYSQL_PASSWORD))
                 .databaseList(mysqlDatabase)
                 .deserializer(new MysqlJsonStringDeserializationSchema())
-//                .tableList(mysqlTables)
+                .tableList("")
                 .startupOptions(startupOption)
                 .build();
 
@@ -72,38 +70,80 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
 
         SingleOutputStreamOperator<String> sinkKafkaStream = env.addSource(KafkaUtils.getConsumer(kafkaConsumerProps, consumerKafkaTopic))
                 .connect(mysqlBroadcastStream)
-//                .process(new BroadcastProcessFunction<String, String, String>() {
-//
-//
-//                    @Override
-//                    public void open(Configuration parameters) throws Exception {
-//
-//                    }
-//
-//                    @Override
-//                    public void processElement(String s, ReadOnlyContext readOnlyContext, Collector<String> collector) throws Exception {
-////                        collector.collect(s);
-//                    }
-//
-//                    @Override
-//                    public void processBroadcastElement(String mysqlSource, Context context, Collector<String> collector) throws Exception {
-////                        collector.collect(s);
-//                        BroadcastState<String, String> broadcastState = context.getBroadcastState(MapStateDescriptorUtils.DWD_MYSQL_STATE);
-//
-//                        JSONObject mysqlSourceJson = JSONObject.parseObject(mysqlSource);
-//                        DwdMysqlConfigTable dwdMysqlConfigTable = JSONObject.parseObject(mysqlSourceJson.getString("data"), DwdMysqlConfigTable.class);
-//                        // 保存配置
-//                        String sourceTable = dwdMysqlConfigTable.getSourceTable();
-//                        broadcastState.put(sourceTable, JSONObject.toJSONString(dwdMysqlConfigTable));
-//
-//                        String s = JSONObject.toJSONString(dwdMysqlConfigTable);
-//                        collector.collect(s);
-//
-//                    }
-//                });
-                .process(new MysqlConfigBroadcastProcessFunction(phoenixProp)).setParallelism(1);
+                .process(new BroadcastProcessFunction<String, String, String>() {
 
-        sinkKafkaStream.print();
+
+                    @Override
+                    public void open(Configuration parameters) throws Exception {
+
+                    }
+
+                    @Override
+                    public void processElement(String s, ReadOnlyContext readOnlyContext, Collector<String> collector) throws Exception {
+                        collector.collect(s);
+                    }
+
+                    @Override
+                    public void processBroadcastElement(String mysqlSource, Context context, Collector<String> collector) throws Exception {
+//                        collector.collect(s);
+                        BroadcastState<String, String> broadcastState = context.getBroadcastState(MapStateDescriptorUtils.DWD_MYSQL_STATE);
+
+                        JSONObject mysqlSourceJson = JSONObject.parseObject(mysqlSource);
+                        DwdMysqlConfigTable dwdMysqlConfigTable = JSONObject.parseObject(mysqlSourceJson.getString("data"), DwdMysqlConfigTable.class);
+                        // 保存配置
+                        String sourceTable = dwdMysqlConfigTable.getSourceTable();
+                        broadcastState.put(sourceTable, JSONObject.toJSONString(dwdMysqlConfigTable));
+
+                        String s = JSONObject.toJSONString(dwdMysqlConfigTable);
+                        collector.collect(s);
+
+                    }
+                });
+//                .process(new MysqlConfigBroadcastProcessFunction(phoenixProp)).setParallelism(1);
+
+        sinkKafkaStream.process(new ProcessFunction<String, String>() {
+
+            Connection connection;
+            HBaseAdmin hBaseAdmin;
+            HTable hTable;
+
+            @Override
+            public void open(Configuration parameters) throws Exception {
+
+                System.out.println("process open");
+
+                org.apache.hadoop.conf.Configuration conf = HBaseConfiguration.create();
+                conf.set("hbase.zookeeper.quorum", "node1");
+                conf.set("hbase.zookeeper.property.clientPort", "2181");
+
+                connection = ConnectionFactory.createConnection(conf);
+                hBaseAdmin = (HBaseAdmin) connection.getAdmin();
+
+                System.out.println("connection.isClosed() = " + connection.isClosed());
+
+                hTable = (HTable) connection.getTable(TableName.valueOf("test"));
+
+                Put put = new Put(Bytes.toBytes("1001"));
+                put.addColumn(Bytes.toBytes("info1"), Bytes.toBytes("name"), Bytes.toBytes("詹姆斯"));
+                hTable.put(put);
+
+                System.out.println("process finish");
+            }
+
+            @Override
+            public void close() throws Exception {
+                connection.close();
+
+                hBaseAdmin.close();
+            }
+
+            @Override
+            public void processElement(String s, Context context, Collector<String> collector) throws Exception {
+                collector.collect(s);
+            }
+        }).print();
+
+//        sinkKafkaStream.print();
 
 //        DataStream<String> sinkHbaseStream = sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE);
 //

@@ -1,4 +1,4 @@
-package com.myself.connector.sink;
+package com.myself.connector.sink.jbdc;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.configuration.Configuration;
