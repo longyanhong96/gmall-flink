@@ -22,14 +22,14 @@ kafka:
   groupId: test3
   topics:
     consumer: ods_base_db
-  consumerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
-  producerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
+  consumerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
+  producerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
 phoenix:
-  configPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/phoenix.properties
+  configPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\phoenix.properties
 #  driver: org.apache.phoenix.jdbc.PhoenixDriver
 #  url: jdbc:phoenix:192.168.106.101
 mysql:
-  configPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/mysql.properties
+  configPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\mysql.properties
   database: realtime
   tables: realtime.table_process
   startupOption: INITIAL

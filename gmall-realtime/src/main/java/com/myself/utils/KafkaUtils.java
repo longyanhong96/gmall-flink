@@ -1,6 +1,7 @@
 package com.myself.utils;
 
 import com.myself.bean.kafka.KafkaProducerRecord;
+import com.myself.bean.kafka.KafkaStringSerialization;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
@@ -23,15 +24,17 @@ import java.util.Properties;
  */
 public class KafkaUtils {
 
-    public static <T> FlinkKafkaProducer<T> getProducer(Properties props,String topic) {
-        return new FlinkKafkaProducer<T>(topic
+    private static String DEFAULT_TOPIC = "dwd_default_topic";
+
+    public static <T> FlinkKafkaProducer<T> getProducer(Properties props) {
+        return new FlinkKafkaProducer<T>(DEFAULT_TOPIC
                 , new KafkaStringSerialization()
                 , props
                 , FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
     }
 
-    public static <T> FlinkKafkaProducer<T> getKafkaSinkBySchema(KafkaSerializationSchema<T> kafkaSerializationSchema, Properties props, String topic) {
-        return new FlinkKafkaProducer<T>(topic,
+    public static <T> FlinkKafkaProducer<T> getKafkaSinkBySchema(KafkaSerializationSchema<T> kafkaSerializationSchema, Properties props) {
+        return new FlinkKafkaProducer<T>(DEFAULT_TOPIC,
                 kafkaSerializationSchema, props, FlinkKafkaProducer.Semantic.AT_LEAST_ONCE);
     }
 
@@ -40,23 +43,20 @@ public class KafkaUtils {
     }
 
 
-    public static FlinkKafkaConsumer<String> getConsumer(Properties properties, List<String> topics){
+    public static FlinkKafkaConsumer<String> getConsumer(Properties properties, List<String> topics) {
         return new FlinkKafkaConsumer<>(topics, new SimpleStringSchema(), properties);
     }
-}
 
-@NoArgsConstructor
-@AllArgsConstructor
-class KafkaStringSerialization<T> implements KafkaSerializationSchema<KafkaProducerRecord<T>> {
 
-    private String topic;
+    public static <T> FlinkKafkaProducer<T> getKafkaSink(KafkaSerializationSchema<T>
+                                                                 kafkaSerializationSchema, Properties props) {
 
-    @Override
-    public ProducerRecord<byte[], byte[]> serialize(KafkaProducerRecord<T> kafkaProducerRecord, @Nullable Long aLong) {
-        return new ProducerRecord<byte[], byte[]>(
-                topic,
-                Objects.requireNonNull(JsonUtil.format(kafkaProducerRecord.getValue())).getBytes(StandardCharsets.UTF_8)
-        );
+        return new FlinkKafkaProducer<T>(DEFAULT_TOPIC,
+                kafkaSerializationSchema,
+                props,
+                FlinkKafkaProducer.Semantic.EXACTLY_ONCE);
     }
 }
+
+
 

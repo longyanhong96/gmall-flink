@@ -18,8 +18,8 @@ import java.sql.SQLException;
 public class JdbcUtilsTest extends TestCase {
 
     public void testGetConnect() throws SQLException {
-//        Props props = PropsUtil.get("E:\\GitHub\\my\\gmall-flink\\gmall-realtime\\src\\main\\resources\\phoenix.properties");
-//        Connection connect = JdbcUtils.getConnect(props);
+        Props props = PropsUtil.get("E:\\GitHub\\my\\gmall-flink\\gmall-realtime\\src\\main\\resources\\phoenix.properties");
+        Connection connect = JdbcUtils.getConnect(props);
 
 //        String sql = "CREATE TABLE user02 (id varchar PRIMARY KEY,name varchar ,passwd varchar)";
 //
@@ -29,9 +29,9 @@ public class JdbcUtilsTest extends TestCase {
 
 //        System.out.println("create success...");
 
-//        System.out.println("connect.isClosed() = " + connect.isClosed());
+        System.out.println("connect.isClosed() = " + connect.isClosed());
 
-//        connect.close();
+        connect.close();
     }
 
     public void test1(){

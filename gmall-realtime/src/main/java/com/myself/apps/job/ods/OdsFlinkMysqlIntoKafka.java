@@ -48,7 +48,7 @@ public class OdsFlinkMysqlIntoKafka extends AbstractApp {
                 .password(mysqlProps.getProperty(MysqlConstants.MYSQL_PASSWORD))
                 .databaseList(mysqlDatabase)
                 .deserializer(new MysqlJsonStringDeserializationSchema())
-                .tableList("gmall.base_category1", "gmall.base_category2", "gmall.base_category3")
+                .tableList("gmall.order_info","gmall.order_detail","gmall.user_info")
                 .startupOptions(startupOption)
                 .build();
 

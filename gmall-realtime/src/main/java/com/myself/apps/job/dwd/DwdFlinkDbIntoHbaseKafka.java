@@ -8,10 +8,11 @@ import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource;
 import com.alibaba.ververica.cdc.connectors.mysql.table.StartupOptions;
 import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction;
 import com.myself.apps.job.AbstractApp;
+import com.myself.bean.kafka.KafkaProducerRecord;
 import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
 import com.myself.connector.function.impl.PhoenixSqlFunction;
-import com.myself.connector.sink.JdbcBatchOutputFormat;
-import com.myself.connector.sink.JdbcSinkFunction;
+import com.myself.connector.sink.jbdc.JdbcBatchOutputFormat;
+import com.myself.connector.sink.jbdc.JdbcSinkFunction;
 import com.myself.constants.HbaseConstants;
 import com.myself.constants.KafkaConstants;
 import com.myself.constants.MysqlConstants;
@@ -21,6 +22,7 @@ import com.myself.sink.dwd.PhoenixSinkFunction;
 import com.myself.utils.KafkaUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.configuration.Configuration;
@@ -77,7 +79,14 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
                 .connect(mysqlBroadcastStream)
                 .process(new MysqlConfigBroadcastProcessFunction());
 
-        sinkKafkaStream.print();
+        sinkKafkaStream.map(new MapFunction<String, KafkaProducerRecord<String>>() {
+            @Override
+            public KafkaProducerRecord<String> map(String s) throws Exception {
+                JSONObject json = JSONObject.parseObject(s);
+                KafkaProducerRecord<String> record = KafkaProducerRecord.of(json.getString("sinkTable"), 0, json.getString("sinkKey"), json.getString("value"));
+                return record;
+            }
+        }).addSink(KafkaUtils.getProducer(kafkaProducerProps));
 
         sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE)//.print();
                 .addSink(new JdbcSinkFunction<>(new JdbcBatchOutputFormat<>(phoenixProp, new PhoenixSqlFunction(), 5)));
