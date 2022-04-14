@@ -26,7 +26,7 @@ public class App {
     /**
      * 项目 model 包路径
      */
-    public static final String PACKAGE = "com.myself.apps.job.dwd";
+    public static final String PACKAGE = "com.myself.apps.job.ods";
 
     public static void main(String[] args) throws Exception {
         // 解析输入参数

@@ -7,10 +7,9 @@ import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
 import com.myself.connector.utils.JdbcUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.BroadcastState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
@@ -40,45 +39,11 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
     private DataSource phoenixDataSource;
     private Connection phoenixConnection;
 
-    public MysqlConfigBroadcastProcessFunction(Properties phoenixProp) {
-        this.phoenixProp = phoenixProp;
-    }
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        // 连接phoenix
-//        Setting setting = new Setting(phoenixConfigPath);
-//        phoenixDataSource = DSFactory.create(setting).getDataSource();
-//        phoenixConnection = phoenixDataSource.getConnection();
-
-//        HikariConfig hikariConfig = new HikariConfig(phoenixProp);
-//        phoenixDataSource = new HikariDataSource(hikariConfig);
-//        phoenixConnection = phoenixDataSource.getConnection();
-
-//        phoenixConnection = JdbcUtils.getConnect(phoenixProp);
-//
-//        if (!phoenixConnection.isClosed()) {
-//            log.info("phoenix connect!!!!");
-//        }
-
-        log.info("start open");
-
         Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
-        String url = "jdbc:phoenix:node1:2181";
-        phoenixConnection = DriverManager.getConnection(url);
-
-        log.info("phoenix connect is close : {}", phoenixConnection.isClosed());
-
-        log.info("finish open");
-
-//        String driver = "com.mysql.jdbc.Driver";
-//        Class.forName(driver);
-//        String url = "jdbc:mysql://node1:3306/gmall?serverTimezone=UTC";
-//
-//        Connection root = DriverManager.getConnection(url, "root", "123456");
-//        log.info("mysql connect is close : {}", root.isClosed());
-
-
+        phoenixConnection = DriverManager.getConnection("jdbc:phoenix:node1:2181");
     }
 
     @Override
@@ -127,7 +92,7 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
             returnJson.put("sinkType", dwdMysqlConfigTable.getSinkType());
             returnJson.put("sinkTable", dwdMysqlConfigTable.getSinkTable());
             returnJson.put("sinkKey", keyJson.toJSONString());
-            returnJson.put("valueKey", valueJson.toJSONString());
+            returnJson.put("value", valueJson.toJSONString());
 
             // todo:魔法值修改
             if (dwdMysqlConfigTable.getSinkType().equals("hbase")) {
@@ -161,16 +126,18 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
         // todo：魔法值需要修改
         String operation = mysqlSourceJson.getString("operation");
         // 如果数据是初始都过来，或者后面的创建
-//        if (operation.equals("c") || operation.equals("r")) {
-//            if (dwdMysqlConfigTable.getSinkType().equals("hbase") &&
-//                    dwdMysqlConfigTable.getSinkExtend() != null) {
-//                String createTableSql = dwdMysqlConfigTable.getSinkExtend();
-//                PreparedStatement ps = phoenixConnection.prepareStatement(createTableSql);
-//                ps.execute();
-//            }
-//        }
-
-        collector.collect(JSONObject.toJSONString(dwdMysqlConfigTable));
+        if (operation.equals("c") || operation.equals("r")) {
+            if (dwdMysqlConfigTable.getSinkType().equals("hbase") &&
+                    dwdMysqlConfigTable.getSinkExtend() != null) {
+                if (!JdbcUtils.validateTableExist(phoenixConnection, dwdMysqlConfigTable.getSinkTable().toUpperCase())) {
+                    String createTableSql = dwdMysqlConfigTable.getSinkExtend();
+                    PreparedStatement ps = phoenixConnection.prepareStatement(createTableSql);
+                    ps.execute();
+                } else {
+                    log.info("{} is exists!!!!", dwdMysqlConfigTable.getSinkTable());
+                }
+            }
+        }
 
     }
 }

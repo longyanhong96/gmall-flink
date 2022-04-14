@@ -4,6 +4,9 @@ import cn.hutool.core.lang.Dict;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource;
+import com.alibaba.ververica.cdc.connectors.mysql.table.StartupOptions;
+import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction;
 import com.myself.apps.job.AbstractApp;
 import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
 import com.myself.connector.function.impl.PhoenixSqlFunction;
@@ -18,9 +21,7 @@ import com.myself.sink.dwd.PhoenixSinkFunction;
 import com.myself.utils.KafkaUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
-import com.ververica.cdc.connectors.mysql.MySqlSource;
-import com.ververica.cdc.connectors.mysql.table.StartupOptions;
-import com.ververica.cdc.debezium.DebeziumSourceFunction;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.state.BroadcastState;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.datastream.BroadcastStream;
@@ -30,6 +31,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.List;
 import java.util.Properties;
 
@@ -57,14 +60,14 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
     @Override
     protected void process(StreamExecutionEnvironment env) throws Exception {
         // 广播配置内容
-        DebeziumSourceFunction<String> mysqlSourceFunction = MySqlSource.<String>builder()
+        DebeziumSourceFunction<String> mysqlSourceFunction = MySQLSource.<String>builder()
                 .hostname(mysqlProps.getProperty(MysqlConstants.MYSQL_HOST))
                 .port(mysqlProps.getInt(MysqlConstants.MYSQL_PORT))
                 .username(mysqlProps.getProperty(MysqlConstants.MYSQL_USERNAME))
                 .password(mysqlProps.getProperty(MysqlConstants.MYSQL_PASSWORD))
                 .databaseList(mysqlDatabase)
+                .tableList(mysqlTables)
                 .deserializer(new MysqlJsonStringDeserializationSchema())
-//                .tableList(mysqlTables)
                 .startupOptions(startupOption)
                 .build();
 
@@ -72,45 +75,12 @@ public class DwdFlinkDbIntoHbaseKafka extends AbstractApp {
 
         SingleOutputStreamOperator<String> sinkKafkaStream = env.addSource(KafkaUtils.getConsumer(kafkaConsumerProps, consumerKafkaTopic))
                 .connect(mysqlBroadcastStream)
-//                .process(new BroadcastProcessFunction<String, String, String>() {
-//
-//
-//                    @Override
-//                    public void open(Configuration parameters) throws Exception {
-//
-//                    }
-//
-//                    @Override
-//                    public void processElement(String s, ReadOnlyContext readOnlyContext, Collector<String> collector) throws Exception {
-////                        collector.collect(s);
-//                    }
-//
-//                    @Override
-//                    public void processBroadcastElement(String mysqlSource, Context context, Collector<String> collector) throws Exception {
-////                        collector.collect(s);
-//                        BroadcastState<String, String> broadcastState = context.getBroadcastState(MapStateDescriptorUtils.DWD_MYSQL_STATE);
-//
-//                        JSONObject mysqlSourceJson = JSONObject.parseObject(mysqlSource);
-//                        DwdMysqlConfigTable dwdMysqlConfigTable = JSONObject.parseObject(mysqlSourceJson.getString("data"), DwdMysqlConfigTable.class);
-//                        // 保存配置
-//                        String sourceTable = dwdMysqlConfigTable.getSourceTable();
-//                        broadcastState.put(sourceTable, JSONObject.toJSONString(dwdMysqlConfigTable));
-//
-//                        String s = JSONObject.toJSONString(dwdMysqlConfigTable);
-//                        collector.collect(s);
-//
-//                    }
-//                });
-                .process(new MysqlConfigBroadcastProcessFunction(phoenixProp)).setParallelism(1);
+                .process(new MysqlConfigBroadcastProcessFunction());
 
         sinkKafkaStream.print();
 
-//        DataStream<String> sinkHbaseStream = sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE);
-//
-//
-//        sinkKafkaStream.print();
-//
-//        sinkHbaseStream.addSink(new JdbcSinkFunction<>(new JdbcBatchOutputFormat<>(phoenixProp, new PhoenixSqlFunction(), 5)));
+        sinkKafkaStream.getSideOutput(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE)//.print();
+                .addSink(new JdbcSinkFunction<>(new JdbcBatchOutputFormat<>(phoenixProp, new PhoenixSqlFunction(), 5)));
     }
 
     @Override

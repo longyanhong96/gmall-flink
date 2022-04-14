@@ -15,6 +15,6 @@ public class MysqlConstants {
     public final static String MYSQL_USERNAME = "mysql.username";
     public final static String MYSQL_PASSWORD = "mysql.password";
     public final static String MYSQL_DATABASE = "mysql.database";
-    public final static String MYSQL_TABLES = "mysql.table";
+    public final static String MYSQL_TABLES = "mysql.tables";
     public final static String MYSQL_CDC_STARTUP_OPTIONS = "mysql.startupOption";
 }

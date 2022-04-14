@@ -28,26 +28,39 @@ public class ConnectPhoenix {
             String url = "jdbc:phoenix:node1:2181";
             conn = DriverManager.getConnection(url);
 
-            String sql = "CREATE TABLE user (id varchar PRIMARY KEY,name varchar ,passwd varchar)";
-
-            PreparedStatement ps = conn.prepareStatement(sql);
-
-            ps.execute();
-
-            System.out.println("create success...");
+            System.out.println("conn.isClosed() = " + conn.isClosed());
 
 
-//            String insertSql = "upsert into user01(id, INFO.name, INFO.passwd) values('001', 'admin', 'admin')";
+//            DatabaseMetaData metaData = conn.getMetaData();
+//            String type [] = {"TABLE"};
+//            ResultSet user = metaData.getTables(null, null, "USER", type);
+//            boolean next = user.next();
+//            System.out.println("next = " + next);
 //
-//            PreparedStatement ps = conn.prepareStatement(insertSql);
+//            ResultSet tttt = metaData.getTables(null, null, "tttt", type);
+//            System.out.println("tttt.next() = " + tttt.next());
+
+
+//            String sql = "CREATE TABLE test01 (id varchar PRIMARY KEY,name char)";
+//
+//            PreparedStatement ps = conn.prepareStatement(sql);
+//
+//            ps.execute();
+//
+//            System.out.println("create success...");
+
+
+            String insertSql = "upsert into user01(id, name) values('001', '中文')";
+//
+            PreparedStatement ps = conn.prepareStatement(insertSql);
 //
 //            // execute upsert
-//            String msg = ps.executeUpdate() > 0 ? "insert success..."
-//                    : "insert fail...";
+            String msg = ps.executeUpdate() > 0 ? "insert success..."
+                    : "insert fail...";
 
             // you must commit
-//            conn.commit();
-//            System.out.println(msg);
+            conn.commit();
+            System.out.println(msg);
         } finally {
             if (conn != null) {
                 try {
@@ -143,5 +156,12 @@ public class ConnectPhoenix {
             }
         }
 
+    }
+
+    @Test
+    public void test4() {
+        String str = "dim_base_category1";
+
+        System.out.println("str.toUpperCase() = " + str.toUpperCase());
     }
 }

@@ -8,6 +8,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -33,9 +35,9 @@ public class JdbcUtils {
     }
 
     public static String getPhoenixInsertUpdateSql(Iterable<String> keys, Iterable<Object> values, String table) {
-        String insertSql = "upsert into {} ({}) values({})";
+        String insertSql = "upsert into {} ({}) values('{}')";
         String keyColumns = CollUtil.join(keys, ",");
-        String value = CollUtil.join(values, ",");
+        String value = CollUtil.join(values, "','");
 
         return StrFormatter.format(insertSql, table, keyColumns, value);
     }
@@ -43,4 +45,17 @@ public class JdbcUtils {
     public static String getPhoenixInsertUpdateSql(JSONObject jsonObject, String table) {
         return getPhoenixInsertUpdateSql(jsonObject.keySet(), IterUtil.asIterable(jsonObject.values().iterator()), table);
     }
+
+    public static boolean validateTableExist(Connection connection, String tableName) {
+        boolean flag = false;
+        try {
+            DatabaseMetaData meta = connection.getMetaData();
+            ResultSet rs = meta.getTables(null, null, tableName, new String[]{"TABLE"});
+            flag = rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return flag;
+    }
+
 }

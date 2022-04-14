@@ -3,6 +3,9 @@ package com.myself.apps.job.ods;
 import cn.hutool.core.lang.Dict;
 import cn.hutool.setting.dialect.Props;
 import cn.hutool.setting.dialect.PropsUtil;
+import com.alibaba.ververica.cdc.connectors.mysql.MySQLSource;
+import com.alibaba.ververica.cdc.connectors.mysql.table.StartupOptions;
+import com.alibaba.ververica.cdc.debezium.DebeziumSourceFunction;
 import com.myself.apps.job.AbstractApp;
 import com.myself.bean.kafka.KafkaProducerRecord;
 import com.myself.constants.BaseConstants;
@@ -10,9 +13,7 @@ import com.myself.constants.KafkaConstants;
 import com.myself.constants.MysqlConstants;
 import com.myself.process.ods.MysqlJsonStringDeserializationSchema;
 import com.myself.utils.KafkaUtils;
-import com.ververica.cdc.connectors.mysql.MySqlSource;
-import com.ververica.cdc.connectors.mysql.table.StartupOptions;
-import com.ververica.cdc.debezium.DebeziumSourceFunction;
+
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.KafkaSerializationSchema;
@@ -40,14 +41,14 @@ public class OdsFlinkMysqlIntoKafka extends AbstractApp {
 
     @Override
     protected void process(StreamExecutionEnvironment env) throws Exception {
-        DebeziumSourceFunction<String> mysqlSourceFunction = MySqlSource.<String>builder()
+        DebeziumSourceFunction<String> mysqlSourceFunction = MySQLSource.<String>builder() //MySqlSource.<String>builder()
                 .hostname(mysqlProps.getProperty(MysqlConstants.MYSQL_HOST))
                 .port(mysqlProps.getInt(MysqlConstants.MYSQL_PORT))
                 .username(mysqlProps.getProperty(MysqlConstants.MYSQL_USERNAME))
                 .password(mysqlProps.getProperty(MysqlConstants.MYSQL_PASSWORD))
                 .databaseList(mysqlDatabase)
                 .deserializer(new MysqlJsonStringDeserializationSchema())
-//                .tableList(mysqlTables)
+                .tableList("gmall.base_category1", "gmall.base_category2", "gmall.base_category3")
                 .startupOptions(startupOption)
                 .build();
 

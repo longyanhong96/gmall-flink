@@ -2,6 +2,7 @@ package com.myself.connector.sink;
 
 import com.myself.connector.function.SqlFromFunction;
 import com.myself.connector.utils.JdbcUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.io.RichOutputFormat;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.util.ExecutorThreadFactory;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @analysis:
  * @date 2022/4/8 6:19 下午
  */
+@Slf4j
 public class JdbcBatchOutputFormat<T> extends RichOutputFormat<T> {
 
     private Properties jdbcProper;
@@ -60,6 +62,8 @@ public class JdbcBatchOutputFormat<T> extends RichOutputFormat<T> {
 
             connection.setAutoCommit(false);
             statement = connection.createStatement();
+
+            log.info("phoenix connect is closed : {}", connection.isClosed());
         } catch (SQLException throwables) {
             throwables.printStackTrace();
         }
@@ -100,6 +104,7 @@ public class JdbcBatchOutputFormat<T> extends RichOutputFormat<T> {
     @Override
     public synchronized void writeRecord(T t) throws IOException {
         String insertSql = sqlFromFunction.transformSql(t);
+        log.info("insert sql : {}", insertSql);
         try {
             statement.addBatch(insertSql);
         } catch (SQLException throwables) {
