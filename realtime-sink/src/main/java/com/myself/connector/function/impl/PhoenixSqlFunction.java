@@ -15,8 +15,8 @@ public class PhoenixSqlFunction implements SqlFromFunction<String> {
     @Override
     public String transformSql(String bean) {
         JSONObject json = JSONObject.parseObject(bean);
-        String table = json.getString("table");
-        JSONObject data = json.getJSONObject("data");
+        String table = json.getString("sinkTable");
+        JSONObject data = json.getJSONObject("value");
 
         String phoenixInsertUpdateSql = JdbcUtils.getPhoenixInsertUpdateSql(data, table);
         return phoenixInsertUpdateSql;

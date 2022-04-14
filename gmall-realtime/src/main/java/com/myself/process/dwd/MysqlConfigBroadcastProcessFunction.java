@@ -1,21 +1,28 @@
 package com.myself.process.dwd;
 
+import cn.hutool.db.ds.DSFactory;
+import cn.hutool.setting.Setting;
 import com.alibaba.fastjson.JSONObject;
 import com.myself.bean.kafka.mysql.DwdMysqlConfigTable;
-import com.myself.connector.utils.HbaseUtils;
+import com.myself.connector.utils.JdbcUtils;
 import com.myself.utils.MapStateDescriptorUtils;
 import com.myself.utils.OutputTagUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.flink.api.common.state.BroadcastState;
+import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.api.common.state.ReadOnlyBroadcastState;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author longyh
@@ -26,28 +33,23 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 @Slf4j
 public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunction<String, String, String> {
 
-    private Connection connection = null;
-    private HBaseAdmin hBaseAdmin = null;
+
+    private String phoenixConfigPath;
+    private Properties phoenixProp;
+    private DataSource phoenixDataSource;
+    private Connection phoenixConnection;
+
 
     @Override
     public void open(Configuration parameters) throws Exception {
-
-        org.apache.hadoop.conf.Configuration conf = HBaseConfiguration.create();
-        conf.set("hbase.zookeeper.quorum", "node1");
-        conf.set("hbase.zookeeper.property.clientPort", "2181");
-
-        connection = ConnectionFactory.createConnection(conf);
-        hBaseAdmin = (HBaseAdmin) connection.getAdmin();
+        Class.forName("org.apache.phoenix.jdbc.PhoenixDriver");
+        phoenixConnection = DriverManager.getConnection("jdbc:phoenix:node1:2181");
     }
 
     @Override
     public void close() throws Exception {
-        if (hBaseAdmin != null) {
-            hBaseAdmin.close();
-        }
-
-        if (connection != null) {
-            connection.close();
+        if (phoenixConnection != null) {
+            phoenixConnection.close();
         }
     }
 
@@ -90,11 +92,10 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
             returnJson.put("sinkType", dwdMysqlConfigTable.getSinkType());
             returnJson.put("sinkTable", dwdMysqlConfigTable.getSinkTable());
             returnJson.put("sinkKey", keyJson.toJSONString());
-            returnJson.put("valueKey", valueJson.toJSONString());
+            returnJson.put("value", valueJson.toJSONString());
 
             // todo:魔法值修改
             if (dwdMysqlConfigTable.getSinkType().equals("hbase")) {
-                returnJson.put("column_family", dwdMysqlConfigTable.getTableFamily());
                 readOnlyContext.output(OutputTagUtil.DWD_DB_DIM_OUTPUT_HBASE, returnJson.toJSONString());
             } else {
                 collector.collect(returnJson.toJSONString());
@@ -127,10 +128,16 @@ public class MysqlConfigBroadcastProcessFunction extends BroadcastProcessFunctio
         // 如果数据是初始都过来，或者后面的创建
         if (operation.equals("c") || operation.equals("r")) {
             if (dwdMysqlConfigTable.getSinkType().equals("hbase") &&
-                    dwdMysqlConfigTable.getTableFamily() != null) {
-                String columnsFamily = dwdMysqlConfigTable.getTableFamily();
-                HbaseUtils.createTable(hBaseAdmin, dwdMysqlConfigTable.getSinkTable(), columnsFamily);
+                    dwdMysqlConfigTable.getSinkExtend() != null) {
+                if (!JdbcUtils.validateTableExist(phoenixConnection, dwdMysqlConfigTable.getSinkTable().toUpperCase())) {
+                    String createTableSql = dwdMysqlConfigTable.getSinkExtend();
+                    PreparedStatement ps = phoenixConnection.prepareStatement(createTableSql);
+                    ps.execute();
+                } else {
+                    log.info("{} is exists!!!!", dwdMysqlConfigTable.getSinkTable());
+                }
             }
         }
+
     }
 }

@@ -21,9 +21,9 @@ flink:
 kafka:
   topics:
     producer: ods_base_db
-  producerPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/producer.properties
+  producerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/producer.properties
 mysql:
-  configPath: E:/GitHub/my/gmall-flink/gmall-realtime/src/main/resources/mysql.properties
+  configPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/mysql.properties
   database: gmall
   startupOption: INITIAL
 jobName: ods-mysql-into-kafka

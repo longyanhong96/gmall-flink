@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend;
 import org.apache.flink.runtime.state.StateBackend;
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend;
 import org.apache.flink.streaming.api.CheckpointingMode;
@@ -36,9 +35,9 @@ public abstract class AbstractApp {
         // 初始化应用配置文件
         initParameter();
 
-//        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
+//        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
 
         env.setParallelism(1);
         // 设置flink env环境信息
@@ -56,13 +55,13 @@ public abstract class AbstractApp {
         switch (dict.getByPath(FlinkConfigContants.FLINK_STATE_BACKEND_TYPE, String.class)) {
             case "rocksdb":
                 Boolean incremental = dict.getByPath(FlinkConfigContants.FLINK_STATE_BACKEND_INCREMENTAL, Boolean.class);
-                stateBackend = new EmbeddedRocksDBStateBackend(incremental);
+//                stateBackend = new EmbeddedRocksDBStateBackend(incremental);
                 break;
             default:
                 stateBackend = new HashMapStateBackend();
                 break;
         }
-        env.setStateBackend(stateBackend);
+//        env.setStateBackend(stateBackend);
 
         // CheckPoint interval
         env.enableCheckpointing(Time.seconds(dict.getByPath(FlinkConfigContants.FLINK_STATE_CHECKPOINTS_INTERVAL, Integer.class)).toMilliseconds());
