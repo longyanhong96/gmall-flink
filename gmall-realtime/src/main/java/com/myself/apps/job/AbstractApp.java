@@ -25,19 +25,26 @@ public abstract class AbstractApp {
 
     protected ParameterTool params;
     protected Dict dict;
+    protected String modelName;
+    private final String APPS_CONFIG_PATH_PREFIX = "/Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/apps/";
 
 
     public void setParams(ParameterTool params) {
         this.params = params;
     }
 
+    public void setModelName(String modelName) {
+        this.modelName = modelName;
+    }
+
     public void processApp() throws Exception {
         // 初始化应用配置文件
-        initParameter();
+//        initParameter();
+        init();
 
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+//        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-//        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(new Configuration());
 
         env.setParallelism(1);
         // 设置flink env环境信息
@@ -96,6 +103,32 @@ public abstract class AbstractApp {
         String configPath = params.get(BaseConstants.CONFIG_PATH_PARAM);
         log.debug("configPath: {}", configPath);
         dict = YamlUtil.loadByPath(configPath);
+        parseConfig(dict);
+    }
+
+    private void init() {
+        String configPath = null;
+        switch (modelName) {
+            case "OdsFlinkMysqlIntoKafka":
+                configPath = "application-ods-mysql-into-kafka.yml";
+                break;
+            case "DwdFlinkLogIntoKafka":
+                configPath = "application-dwd-log-into-kafka.yml";
+                break;
+            case "DwdFlinkDbIntoHbaseKafka":
+                configPath = "application-dwd-db-into-hbasekafka.yml";
+                break;
+            default:
+                break;
+        }
+
+        if (StringUtils.isBlank(configPath)) {
+            throw new IllegalArgumentException("缺少必要参数：" + BaseConstants.CONFIG_PATH_PARAM);
+        }
+
+        String path = APPS_CONFIG_PATH_PREFIX + configPath;
+        log.debug("configPath: {}", configPath);
+        dict = YamlUtil.loadByPath(path);
         parseConfig(dict);
     }
 

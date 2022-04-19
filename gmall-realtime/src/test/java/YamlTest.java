@@ -1,9 +1,13 @@
 import cn.hutool.core.io.resource.ResourceUtil;
+import cn.hutool.core.util.ClassUtil;
+import com.myself.bean.ods.Action;
 import junit.framework.TestCase;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author longyh
@@ -61,5 +65,19 @@ public class YamlTest extends TestCase {
 
         String format = String.format("{%s}.{}", "abc", "qwe");
         System.out.println("format = " + format);
+    }
+
+
+    public void test2(){
+        Set<Class<?>> classes = ClassUtil.scanPackage("com.myself.apps.job");
+        Set<String> collect = classes.stream().map(Class::getName).collect(Collectors.toSet());
+        collect.forEach(s -> System.out.println("s = " + s));
+    }
+
+    public void test3(){
+        Action action = new Action();
+//        action.getActionId()
+//        action.getItem()
+//        action.getTs()
     }
 }
