@@ -4,9 +4,7 @@ import com.myself.bean.ods.Action;
 import junit.framework.TestCase;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,9 +73,10 @@ public class YamlTest extends TestCase {
     }
 
     public void test3(){
-        Action action = new Action();
-//        action.getActionId()
-//        action.getItem()
-//        action.getTs()
+
+
     }
+
+
+
 }

@@ -26,7 +26,7 @@ kafka:
       - dwd_display_log
       - dwd_page_log
     consumer: ods_base_log
-  consumerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
-  producerPath: E:\GitHub\my\gmall-flink\gmall-realtime\src\main\resources\consumer.properties
+  consumerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
+  producerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
 jobName: ods-mysql-into-kafka
 

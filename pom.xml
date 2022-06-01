@@ -12,6 +12,7 @@
 <!--        <module>gmall-logger</module>-->
         <module>gmall-realtime</module>
         <module>realtime-sink</module>
+        <module>gmall-offline</module>
     </modules>
 
     <properties>

@@ -19,14 +19,14 @@ flink:
             number: 3
     checkpoint-storage: EXACTLY_ONCE
 kafka:
-  groupId: ods_log_consumer
+  groupId: test1
   topics:
     producer:
       - dwd_start_log
       - dwd_display_log
       - dwd_page_log
     consumer: ods_base_log
-  consumerPath: /Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
-  producerPath: /Users/mininglamp/Documents/work/gmall-flink/gmall-realtime/src/main/resources/producer.properties
+  consumerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
+  producerPath: /Users/mininglamp/Documents/workspace/gmall-flink/gmall-realtime/src/main/resources/consumer.properties
 jobName: ods-mysql-into-kafka
 
