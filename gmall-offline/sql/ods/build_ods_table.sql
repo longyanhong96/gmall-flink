@@ -466,3 +466,5 @@ EXTERNAL TABLE ods_user_info(
 PARTITIONED BY (`dt` STRING)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
 LOCATION '/user/hive/warehouse/test.db/ods_user_info/';
+
+
